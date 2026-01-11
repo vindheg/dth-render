@@ -19,6 +19,10 @@
     </div>
 
     <script>
+         const BASE_URL =
+        window.location.hostname === "localhost"
+            ? "http://localhost:3000"
+            : "https://dth-portal-backend.onrender.com";
         function showError(message) {
             const errorDiv = document.getElementById('error');
             errorDiv.textContent = message;
@@ -54,7 +58,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:3000/signup', {
+                const response = await fetch(`${BASE_URL}/signup`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, password })

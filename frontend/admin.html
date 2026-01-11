@@ -44,6 +44,10 @@
     </div>
 
     <script>
+         const BASE_URL =
+        window.location.hostname === "localhost"
+            ? "http://localhost:3000"
+            : "https://dth-portal-backend.onrender.com";
         // Check if user is admin
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user || user.role !== 'admin') {
@@ -79,7 +83,7 @@
             }
             
             try {
-                const response = await fetch('http://localhost:3000/add-channel', {
+                const response = await fetch(`${BASE_URL}/add-channel`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, price })
@@ -103,7 +107,7 @@
 
         async function loadChannels() {
             try {
-                const response = await fetch('http://localhost:3000/channels');
+                const response = await fetch(`${BASE_URL}/channels`);
                 const channels = await response.json();
                 
                 const channelsList = document.getElementById('channels-list');

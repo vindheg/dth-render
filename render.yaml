@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: dth-portal-backend
+    env: node
+    region: oregon
+    branch: main
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: PGHOST
+        fromDatabase:
+          name: dth-portal-db
+          property: host
+      - key: PGUSER
+        fromDatabase:
+          name: dth-portal-db
+          property: user
+      - key: PGPASSWORD
+        fromDatabase:
+          name: dth-portal-db
+          property: password
+      - key: PGDATABASE
+        fromDatabase:
+          name: dth-portal-db
+          property: name
+      - key: PGPORT
+        fromDatabase:
+          name: dth-portal-db
+          property: port
+    healthCheckPath: /health
+    autoDeploy: true
+
+  - type: static
+    name: dth-portal-frontend
+    env: static
+    region: oregon
+    branch: main
+    buildCommand: echo "no build needed"
+    publishPath: frontend

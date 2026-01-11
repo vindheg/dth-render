@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - DTH Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: auto;
+            background: #dc3545;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        .admin-section {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="logout-btn" onclick="logout()">Logout</button>
+        <h1>Admin Panel</h1>
+        
+        <div class="admin-section card">
+            <h2>Add New Channel</h2>
+            <div id="admin-error" class="error" style="display: none;"></div>
+            <div id="admin-success" class="success" style="display: none;"></div>
+            <input id="cname" placeholder="Channel Name" required>
+            <input id="price" type="number" placeholder="Price (₹)" required min="0">
+            <button onclick="addChannel()">Add Channel</button>
+        </div>
+        
+        <div class="admin-section card">
+            <h2>All Channels</h2>
+            <div id="channels-list" class="channel-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is admin
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || user.role !== 'admin') {
+            window.location.href = 'login.html';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('admin-error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('admin-success').style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('admin-success');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            document.getElementById('admin-error').style.display = 'none';
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        async function addChannel() {
+            const name = document.getElementById('cname').value;
+            const price = document.getElementById('price').value;
+            
+            if (!name || !price) {
+                showError('Please enter channel name and price');
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:3000/add-channel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, price })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showSuccess('Channel added successfully!');
+                    document.getElementById('cname').value = '';
+                    document.getElementById('price').value = '';
+                    loadChannels(); // Refresh the list
+                } else {
+                    showError(data.error || 'Failed to add channel');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+                console.error('Add channel error:', error);
+            }
+        }
+
+        async function loadChannels() {
+            try {
+                const response = await fetch('http://localhost:3000/channels');
+                const channels = await response.json();
+                
+                const channelsList = document.getElementById('channels-list');
+                channelsList.innerHTML = '';
+                
+                channels.forEach(channel => {
+                    const channelDiv = document.createElement('div');
+                    channelDiv.className = 'channel-item';
+                    channelDiv.innerHTML = `
+                        <div>
+                            <strong>${channel.name}</strong><br>
+                            <small>Price: ₹${channel.price}</small>
+                        </div>
+                        <div>ID: ${channel.id}</div>
+                    `;
+                    channelsList.appendChild(channelDiv);
+                });
+            } catch (error) {
+                console.error('Error loading channels:', error);
+            }
+        }
+
+        // Load channels on page load
+        document.addEventListener('DOMContentLoaded', loadChannels);
+    </script>
+</body>
+</html>

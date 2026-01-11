@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup - DTH Portal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Signup</h2>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="success" class="success" style="display: none;"></div>
+        <input id="name" placeholder="Username" required>
+        <input id="password" type="password" placeholder="Password" required>
+        <input id="cpassword" type="password" placeholder="Confirm Password" required>
+        <button onclick="signup()">Signup</button>
+        <a href="login.html" class="link">Already have an account? Login here</a>
+    </div>
+
+    <script>
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('success').style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+        }
+
+        async function signup() {
+            const name = document.getElementById('name').value;
+            const password = document.getElementById('password').value;
+            const cpassword = document.getElementById('cpassword').value;
+            
+            if (!name || !password || !cpassword) {
+                showError('Please fill all fields');
+                return;
+            }
+            
+            if (password !== cpassword) {
+                showError("Passwords don't match");
+                return;
+            }
+            
+            if (password.length < 6) {
+                showError("Password must be at least 6 characters");
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showSuccess('Signup successful! Redirecting to login...');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    showError(data.message || 'Signup failed');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+                console.error('Signup error:', error);
+            }
+        }
+
+        // Allow Enter key to trigger signup
+        document.getElementById('cpassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                signup();
+            }
+        });
+    </script>
+</body>
+</html>

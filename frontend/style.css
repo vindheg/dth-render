@@ -1,0 +1,114 @@
+body { 
+    font-family: Arial, sans-serif; 
+    background: #1e1e2f; 
+    color: #f0f0f0; 
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.form-container {
+    background: #27293d; 
+    padding: 40px 50px; 
+    border-radius: 12px; 
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5); 
+    width: 320px;
+    margin: 100px auto;
+    text-align: center;
+}
+
+input { 
+    display: block; 
+    width: 100%; 
+    padding: 12px; 
+    margin: 12px 0; 
+    border-radius: 6px; 
+    border: 1px solid #444760; 
+    background: #323447; 
+    color: #f0f0f0; 
+    box-sizing: border-box;
+}
+
+input::placeholder { 
+    color: #a0a0a0; 
+}
+
+button { 
+    padding: 12px 25px; 
+    border: none; 
+    background: #0078ff; 
+    color: #fff; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    margin-top: 10px; 
+    width: 100%;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+button:hover { 
+    background: #005fcc; 
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    background: #555;
+    cursor: not-allowed;
+}
+
+.link {
+    display: block;
+    margin-top: 15px;
+    color: #00d4ff;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+.error {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+    padding: 10px;
+    border-radius: 6px;
+    margin: 10px 0;
+}
+
+.success {
+    color: #51cf66;
+    background: rgba(81, 207, 102, 0.1);
+    padding: 10px;
+    border-radius: 6px;
+    margin: 10px 0;
+}
+
+.card {
+    background: #27293d;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.channel-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.channel-item {
+    background: #323447;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}

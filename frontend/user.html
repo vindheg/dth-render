@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Portal - DTH Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: auto;
+            background: #dc3545;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        .balance-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .subscribe-btn {
+            background: #28a745;
+            width: auto;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        
+        .subscribe-btn:hover {
+            background: #218838;
+        }
+        
+        .unsubscribe-btn {
+            background: #dc3545;
+            width: auto;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        
+        .unsubscribe-btn:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="logout-btn" onclick="logout()">Logout</button>
+        <h1>Welcome to DTH Portal</h1>
+        
+        <!-- Balance Section -->
+        <div class="balance-info">
+            <h3>Your Balance</h3>
+            <div id="balance">Loading...</div>
+        </div>
+        
+        <div class="card">
+            <h2>Available Channels</h2>
+            <div id="error" class="error" style="display: none;"></div>
+            <div id="success" class="success" style="display: none;"></div>
+            <div id="channels-list" class="channel-list"></div>
+        </div>
+        
+        <div class="card">
+            <h2>Your Subscribed Channels</h2>
+            <div id="my-channels-list" class="channel-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || user.role !== 'user') {
+            window.location.href = 'login.html';
+        }
+        
+        const userId = user.id;
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('success').style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        async function loadBalance() {
+            try {
+                const response = await fetch(`http://localhost:3000/balance/${userId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const balanceDiv = document.getElementById('balance');
+                    const dueDate = new Date(data.recharge_due).toLocaleDateString();
+                    balanceDiv.innerHTML = `
+                        <h2>₹${data.balance}</h2>
+                        <p>Recharge Due: ${dueDate}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading balance:', error);
+            }
+        }
+
+        async function loadChannels() {
+            try {
+                const response = await fetch('http://localhost:3000/channels');
+                const channels = await response.json();
+                
+                const channelsList = document.getElementById('channels-list');
+                channelsList.innerHTML = '';
+                
+                channels.forEach(channel => {
+                    const channelDiv = document.createElement('div');
+                    channelDiv.className = 'channel-item';
+                    channelDiv.innerHTML = `
+                        <div>
+                            <strong>${channel.name}</strong><br>
+                            <small>Price: ₹${channel.price}</small>
+                        </div>
+                        <button class="subscribe-btn" onclick="subscribeChannel(${channel.id}, ${channel.price})">
+                            Subscribe
+                        </button>
+                    `;
+                    channelsList.appendChild(channelDiv);
+                });
+            } catch (error) {
+                console.error('Error loading channels:', error);
+            }
+        }
+
+        async function loadMyChannels() {
+            try {
+                const response = await fetch(`http://localhost:3000/my-channels/${userId}`);
+                const channels = await response.json();
+                
+                const myChannelsList = document.getElementById('my-channels-list');
+                myChannelsList.innerHTML = '';
+                
+                if (channels.length === 0) {
+                    myChannelsList.innerHTML = '<p>You are not subscribed to any channels yet.</p>';
+                    return;
+                }
+                
+                channels.forEach(channel => {
+                    const channelDiv = document.createElement('div');
+                    channelDiv.className = 'channel-item';
+                    channelDiv.innerHTML = `
+                        <div>
+                            <strong>${channel.name}</strong><br>
+                            <small>Price: ₹${channel.price}</small>
+                        </div>
+                        <button class="unsubscribe-btn" onclick="unsubscribeChannel(${channel.id})">
+                            Unsubscribe
+                        </button>
+                    `;
+                    myChannelsList.appendChild(channelDiv);
+                });
+            } catch (error) {
+                console.error('Error loading my channels:', error);
+            }
+        }
+
+        async function subscribeChannel(channelId, price) {
+            try {
+                const response = await fetch('http://localhost:3000/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, channelId, price })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showSuccess(data.message);
+                    // Refresh all data
+                    loadBalance();
+                    loadChannels();
+                    loadMyChannels();
+                } else {
+                    showError(data.error || 'Subscription failed');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+                console.error('Subscribe error:', error);
+            }
+        }
+
+        async function unsubscribeChannel(channelId) {
+            try {
+                const response = await fetch('http://localhost:3000/unsubscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, channelId })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showSuccess(data.message);
+                    // Refresh all data
+                    loadBalance();
+                    loadChannels();
+                    loadMyChannels();
+                } else {
+                    showError(data.error || 'Unsubscription failed');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+                console.error('Unsubscribe error:', error);
+            }
+        }
+
+        // Load all data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBalance();
+            loadChannels();
+            loadMyChannels();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                loadBalance();
+                loadChannels();
+                loadMyChannels();
+            }, 30000);
+        });
+    </script>
+</body>
+</html>

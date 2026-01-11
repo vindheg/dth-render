@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - DTH Portal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Login</h2>
+        <div id="error" class="error" style="display: none;"></div>
+        <input id="name" placeholder="Username" required>
+        <input id="password" type="password" placeholder="Password" required>
+        <button onclick="login()">Login</button>
+        <a href="signup.html" class="link">New user? Register here</a>
+    </div>
+
+    <script>
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        async function login() {
+            const name = document.getElementById('name').value;
+            const password = document.getElementById('password').value;
+            
+            if (!name || !password) {
+                showError('Please enter both username and password');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.role === 'admin') {
+                        localStorage.setItem('user', JSON.stringify({ role: 'admin', name: 'admin' }));
+                        window.location.href = 'admin.html';
+                    } else {
+                        localStorage.setItem('user', JSON.stringify({ 
+                            role: 'user', 
+                            id: data.user.id, 
+                            name: data.user.name 
+                        }));
+                        window.location.href = 'user.html';
+                    }
+                } else {
+                    showError(data.error || 'Login failed');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+                console.error('Login error:', error);
+            }
+        }
+
+        // Allow Enter key to trigger login
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>

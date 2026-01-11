@@ -283,6 +283,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Something went wrong!" });
 });
 
+app.get("/", (req, res) => {
+  res.send("DTH Portal Backend is running 🚀");
+});
+
 /* -------------------- START SERVER -------------------- */
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
